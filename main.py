@@ -8,12 +8,9 @@ from keras.models import load_model
 video = cv2.VideoCapture("http://192.168.0.154:4747/video")
 
 def preProcess(img):
-    imgPre = cv2.GaussianBlur(img,(3,3),3)
-
-
-
-    imgPre = cv2.Canny(imgPre,90,140)
-    kernel = np.ones((4,4),np.uint8)
+    imgPre = cv2.GaussianBlur(img,(3,3),5)
+    imgPre = cv2.Canny(imgPre,100,200)
+    kernel = np.ones((2,2),np.uint8)
     imgPre = cv2.dilate(imgPre,kernel,iterations=2)
     imgPre = cv2.erode(imgPre,kernel,iterations=1)
     return imgPre
@@ -21,7 +18,7 @@ def preProcess(img):
 
 model = load_model('Keras_model.h5',compile=False)
 data = np.ndarray(shape=(1,224,224,3),dtype=np.float32)
-classes = ["10 cents"]
+classes = ["10 cents", "50 cents"]
 
 def DetectarMoeda(img):
     imgMoeda = cv2.resize(img,(224,224))
@@ -76,15 +73,29 @@ while True:
     cv2.waitKey(1)
 
 """
+quantidade = 0
+total = 0
 index = 0
 while True:
     _,img = video.read()
     img = cv2.resize(img,(640,480))
     imgPre = preProcess(img)
 
-    #countors, hi = cv2.findContours(imgPre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-#
-    ##qtd = 0
+    countors, hi = cv2.findContours(imgPre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    for contour in countors:
+        # Aproximar o contorno por um polígono
+        epsilon = 0.04 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        # Se o polígono aproximado tiver 5 ou 6 vértices (ou seja, é uma forma semelhante a um círculo)
+        if len(approx) >= 5:
+            # Desenhar o contorno em verde (ou realizar outra ação)
+            contour_image = cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
+            cv2.imshow('cont', contour_image)
+            print(len(approx))
+
+    #qtd = 0
     #for cnt in countors:
     #    area = cv2.contourArea(cnt)
     #    if area > 2000:
@@ -92,16 +103,28 @@ while True:
     #        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
     #        recorte = img[y:y + h, x:x + w]
     #        classe, conf = DetectarMoeda(recorte)
-    #        if conf >0.8:
+    #        if conf > 0.9:
     #            cv2.putText(img,f'{classe} {conf}',(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2)
     #            #if classe == '1 real': qtd+=1
     #            #if classe == '25 cent': qtd += 0.25
     #            #if classe == '50 cent': qtd += 0.5
+#
+    #        if quantidade < 100:
+    #            quantidade += 1
+    #            total += conf
+
 
 
     cv2.imshow('IMG PRE', imgPre)
     cv2.imshow('IMG',img)
+
     cv2.waitKey(1)
+
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
+        cv2.destroyAllWindows()
+        print(f'{quantidade} - {total/quantidade}')
+        break
 
 
 """

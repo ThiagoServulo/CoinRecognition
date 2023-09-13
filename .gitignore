@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+training/imagesToTraining
+todo.txt
 *.py[cod]
 *$py.class
 
@@ -50,6 +52,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.idea/
 
 # Translations
 *.mo
