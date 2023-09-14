@@ -2,6 +2,7 @@
 __pycache__/
 training/imagesToTraining
 todo.txt
+configuration.py
 *.py[cod]
 *$py.class
 
