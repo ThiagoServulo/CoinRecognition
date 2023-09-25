@@ -1,142 +1,92 @@
 import cv2
 import numpy as np
 from keras.models import load_model
-
-#tf 2.9.1
-#keras 2.6.0
-
-video = cv2.VideoCapture("http://192.168.0.154:4747/video")
-
-def preProcess(img):
-    imgPre = cv2.GaussianBlur(img,(3,3),5)
-    imgPre = cv2.Canny(imgPre,100,200)
-    kernel = np.ones((2,2),np.uint8)
-    imgPre = cv2.dilate(imgPre,kernel,iterations=2)
-    imgPre = cv2.erode(imgPre,kernel,iterations=1)
-    return imgPre
+from src import PreProcessing, Ellipse
 
 
-model = load_model('Keras_model.h5',compile=False)
-data = np.ndarray(shape=(1,224,224,3),dtype=np.float32)
-classes = ["10 cents", "50 cents"]
+# Disable scientific notation for clarity
+np.set_printoptions(suppress=True)
 
-def DetectarMoeda(img):
-    imgMoeda = cv2.resize(img,(224,224))
-    imgMoeda = np.asarray(imgMoeda)
-    imgMoedaNormalize = (imgMoeda.astype(np.float32)/127.0)-1
-    data[0] = imgMoedaNormalize
-    prediction = model.predict(data)
-    index = np.argmax(prediction)
-    percent = prediction[0][index]
-    classe = classes[index]
-    return classe,percent
+# Load the model
+model = load_model("keras_Model.h5", compile=False)
 
-"""
-def DetectarMoeda(img):
-    imgMoeda = cv2.resize(img,(224,224))
-    imgMoeda = np.asarray(imgMoeda)
-    imgMoedaNormalize = (imgMoeda.astype(np.float32)/127.0)-1
-    data[0] = imgMoedaNormalize
-    prediction = model.predict(data)
-    index = np.argmax(prediction)
-    percent = prediction[0][index]
-    classe = classes[index]
-    return classe,percent
+# Load the labels
+class_names = open("labels.txt", "r").readlines()
 
+# CAMERA can be 0 or 1 based on default camera of your computer
+#camera = cv2.VideoCapture(0)
 
+#video = cv2.VideoCapture("http://192.168.0.2:4748/video")
+
+index22 = 0
 
 while True:
-    _,img = video.read()
-    img = cv2.resize(img,(640,480))
-    imgPre = preProcess(img)
-    countors,hi = cv2.findContours(imgPre,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    if index22 == 0:
+        index22 = 1
+        # Grab the webcamera's image.
+        #ret, image = video.read()
+        image = cv2.imread('training/imagesToTraining/teste/imagem711.jpg')
+        #amarela(image)
+        img_back = image.copy()
+        img_result =  image.copy()
 
-    qtd = 0
-    for cnt in countors:
-        area = cv2.contourArea(cnt)
-        if area > 2000:
-            x,y,w,h = cv2.boundingRect(cnt)
-            cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
-            recorte = img[y:y +h,x:x+ w]
-            classe, conf = DetectarMoeda(recorte)
-            if conf >0.7:
-                cv2.putText(img,str(classe),(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2)
-                if classe == '1 real': qtd+=1
-                if classe == '25 cent': qtd += 0.25
-                if classe == '50 cent': qtd += 0.5
+        imgPre = PreProcessing.ImagePreProcessing(image)
+        count = Ellipse.RecognizeEllipses(image.copy(), imgPre)
 
-    cv2.rectangle(img,(430,30),(600,80),(0,0,255),-1)
-    cv2.putText(img,f'R$ {qtd}',(440,67),cv2.FONT_HERSHEY_SIMPLEX,1.2,(255,255,255),2)
+        cv2.imshow('recorte', imgPre)
+        countors, hi = cv2.findContours(imgPre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-    cv2.imshow('IMG',img)
-    cv2.imshow('IMG PRE', imgPre)
-    cv2.waitKey(1)
+        print(f'Tamanho: {len(count)}')
+        qtd = 0
+        for cnt in count:
+            print('aaaaa')
+            area = cv2.contourArea(cnt)
+            if area > 500:
+                x, y, w, h = cv2.boundingRect(cnt)
+                img2 = img_back[y:y + h, x:x + w]
+                img2 = cv2.GaussianBlur(img2, (3, 3), 3)
+                cv2.imshow('recorte', img2)
 
-"""
-quantidade = 0
-total = 0
-index = 0
-while True:
-    _,img = video.read()
-    img = cv2.resize(img,(640,480))
-    imgPre = preProcess(img)
+                # Resize the raw image into (224-height,224-width) pixels
+                img2 = cv2.resize(img2, (224, 224), interpolation=cv2.INTER_AREA)
 
-    countors, hi = cv2.findContours(imgPre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                # Show the image in a window
+                #cv2.imshow("Webcam Image", image)
 
-    for contour in countors:
-        # Aproximar o contorno por um polígono
-        epsilon = 0.04 * cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, epsilon, True)
+                # Make the image a numpy array and reshape it to the models input shape.
+                img2 = np.asarray(img2, dtype=np.float32).reshape(1, 224, 224, 3)
 
-        # Se o polígono aproximado tiver 5 ou 6 vértices (ou seja, é uma forma semelhante a um círculo)
-        if len(approx) >= 5:
-            # Desenhar o contorno em verde (ou realizar outra ação)
-            contour_image = cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
-            cv2.imshow('cont', contour_image)
-            print(len(approx))
+                # Normalize the image array
+                img2 = (img2 / 127.5) - 1
 
-    #qtd = 0
-    #for cnt in countors:
-    #    area = cv2.contourArea(cnt)
-    #    if area > 2000:
-    #        x, y, w, h = cv2.boundingRect(cnt)
-    #        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    #        recorte = img[y:y + h, x:x + w]
-    #        classe, conf = DetectarMoeda(recorte)
-    #        if conf > 0.9:
-    #            cv2.putText(img,f'{classe} {conf}',(x,y),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2)
-    #            #if classe == '1 real': qtd+=1
-    #            #if classe == '25 cent': qtd += 0.25
-    #            #if classe == '50 cent': qtd += 0.5
-#
-    #        if quantidade < 100:
-    #            quantidade += 1
-    #            total += conf
+                # Predicts the model
+                prediction = model.predict(img2)
+                index = np.argmax(prediction)
+                class_name = class_names[index]
+                confidence_score = prediction[0][index]
 
+                # Print prediction and confidence score
+                classe = class_name[2:]
 
+                conf = str(np.round(confidence_score * 100))[:-2]
 
-    cv2.imshow('IMG PRE', imgPre)
-    cv2.imshow('IMG',img)
+                if int(conf) > 50:
+                    print("Class:", classe, end="")
+                    print("Confidence Score:", conf, "%")
 
-    cv2.waitKey(1)
+                    cv2.putText(img_result, f'{classe}: {conf}', (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('q'):
-        cv2.destroyAllWindows()
-        print(f'{quantidade} - {total/quantidade}')
+        cv2.imshow("Resultado", img_result)
+
+    # Listen to the keyboard for presses.
+    keyboard_input = cv2.waitKey(1)
+
+    # 27 is the ASCII for the esc key on your keyboard.
+    if keyboard_input == 27:
         break
 
+#camera.release()
+cv2.destroyAllWindows()
 
-"""
-            key = cv2.waitKey(1) & 0xFF
-            # Se a tecla 's' for pressionada, faça algo
-            recorte = cv2.resize(recorte, (224, 224))
-            cv2.imshow('IMG', recorte)
 
-            if key == ord('s'):
-                # Faça algo aqui, por exemplo, exibir uma mensagem
 
-                cv2.imwrite(f'imagesToTraining/imagem{index}.jpg', recorte)
-                print('salvou')
-                index += 1
-"""

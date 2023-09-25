@@ -37,7 +37,7 @@ def captureImages(coinName: str, cleanFolder: bool = False) -> None:
                 os.remove(path)
 
     # Initializing the image index
-    indexImage = 0
+    indexImage = 700
 
     # Loop to capture and proccess the images
     while True:
@@ -59,22 +59,22 @@ def captureImages(coinName: str, cleanFolder: bool = False) -> None:
             if area > 2000:
                 # Founding a rectangle around the contour
                 x, y, w, h = cv2.boundingRect(cnt)
-                imageCropped = image[y:y +h,x:x+ w]
+                imageCropped = image[y: y + h, x: x + w]
                 # Resizing the cropped image
                 # This step is important because the Teachable Machine requires images with this size
                 imageCropped = cv2.resize(imageCropped, (224, 224))
                 # Show the cropped and resized image
-                cv2.imshow('IMG', imageCropped)
+                cv2.imshow('Image', image)
                 # Check the keyboard keys interruptions
                 key = cv2.waitKey(1) & 0xFF
                 # If the key is 's' capture and save the image
                 # If the key is 'q' close all windows and stop the program
                 if key == ord('s'):
-                    cv2.imwrite(f'{folder}/imagem{indexImage}.jpg', imageCropped)
+                    cv2.imwrite(f'{folder}/imagem{indexImage}.jpg', image)
                     indexImage += 1
                     print(f'Saving image number: {indexImage}')
                 elif key == ord('q'):
                     cv2.destroyAllWindows()
                     return
 
-captureImages('60_cents')
+captureImages('teste')
