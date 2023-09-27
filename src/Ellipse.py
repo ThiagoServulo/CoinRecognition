@@ -88,6 +88,6 @@ def RecognizeEllipses(imageOriginal: np.ndarray, imagePreProcessed: np.ndarray) 
                     cv2.circle(imageOriginal, tuple(point), 3, (0, 0, 255), -1)
 
     # Show the image with the detected ellipses
-    # cv2.imshow('Ellipses detected', imageOriginal)
+    #cv2.imshow('Ellipses detected', imageOriginal)
 
     return ellipses_detected
