@@ -1,6 +1,6 @@
 import cv2
 from typing import Optional
-from configuration import *
+from src.configuration import *
 
 def startCamera() -> Optional[cv2.VideoCapture]:
     """
@@ -14,4 +14,4 @@ def startCamera() -> Optional[cv2.VideoCapture]:
     elif CAMERA == 1:
         return cv2.VideoCapture(f"http://{CAMERA_IP}:{CAMERA_PORT}/video")
     else:
-        return None
+        raise TypeError("Select the type of the camera")

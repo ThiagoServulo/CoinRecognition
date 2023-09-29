@@ -74,7 +74,8 @@ def RecognizeEllipses(imageOriginal: np.ndarray, imagePreProcessed: np.ndarray) 
             # In this case, it will be use a factor of 10% to aproximate the ellipse to a circle
             if (max(vector_of_distances) * 0.1) < difference:
                 # The ellipse will be ignored
-                print('Ellipse ignored')
+                #print('Ellipse ignored')
+                pass
             else:
                 # The ellipse will be considered
                 # Append the ellipse
