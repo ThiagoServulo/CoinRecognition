@@ -35,7 +35,7 @@ def loopMain():
             raise TypeError("Select the type of the camera")
 
         # Show the image to process
-        cv2.imshow('Image to process', image)
+        #cv2.imshow('Image to process', image)
 
         # Pre-processing the image
         imagePreProcessed = PreProcessing.ImagePreProcessing(image.copy())
@@ -45,12 +45,6 @@ def loopMain():
         ellipses = Ellipse.RecognizeEllipses(image.copy(), imagePreProcessed.copy())
         if len(ellipses) > 0:
             print(f'Number of ellipses recognized: {len(ellipses)}')
-
-        # Find contours in the image
-        # Parameters:
-        #   - RETR_EXTERNAL: Returns only the external contours
-        #   - CHAIN_APPROX_NONE: Stores all the contour points
-        countors, _ = cv2.findContours(imagePreProcessed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         # Process each ellipse
         for ellipse in ellipses:
@@ -82,9 +76,9 @@ def loopMain():
                 # Make the image a numpy array and reshape it to the models input shape
                 # Parameters:
                 #   - 1: indicates that we are dealing with a single sample
-                #   - 224 indicates the width of the image after resizing
-                #   - 224 indicates the height of the image after resizing
-                #   - 3 indicates that the image has 3 color channels (RGB)
+                #   - 224: indicates the width of the image after resizing
+                #   - 224: indicates the height of the image after resizing
+                #   - 3: indicates that the image has 3 color channels (RGB)
                 image_cutout = np.asarray(image_cutout, dtype=np.float32).reshape(1, 224, 224, 3)
 
                 # Normalize the image array
@@ -116,6 +110,9 @@ def loopMain():
                     print("Coin name:", coin_name)
                     print("Confidence Score:", confidence_score, "%")
 
+                    # Draw a green ellipse in the image
+                    image = cv2.ellipse(image.copy(), cv2.fitEllipse(ellipse), (0, 255, 0), 2)
+
                     # Write the text with the coin information in the image
                     # Parameters:
                     #   - (x, y): These are the coordinates where the text will be written
@@ -123,10 +120,14 @@ def loopMain():
                     #   - 0.5: Defines the font scale factor, which determines the size of the text
                     #   - (255, 255, 255): The color of the text in the format (B, G, R)
                     #   - 2: Specifies the thickness of the text
-                    image = cv2.putText(image.copy(), f'{coin_name}: {confidence_score}', (x, y),
+                    image = cv2.putText(image, f'{coin_name}: {confidence_score}%', (x, y),
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
                 else:
                     print(f"Coin desconsidered because your confidence score is too low")
+
+                    # Draw a red ellipse in the image
+                    image = cv2.ellipse(image.copy(), cv2.fitEllipse(ellipse), (0, 0, 255), 2)
+
                     #print("Coin name:", coin_name)
                     #print("Confidence Score:", confidence_score, "%")
 
