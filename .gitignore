@@ -4,6 +4,7 @@ training/imagesToTraining
 todo.txt
 *.py[cod]
 *$py.class
+/src/configuration.py
 
 # C extensions
 *.so
