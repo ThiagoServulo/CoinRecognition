@@ -1,0 +1,9 @@
+keras==2.15.0
+numpy==1.26.4
+opencv_python==4.8.1.78
+tensorboard==2.15.2
+tensorboard-data-server==0.7.2
+tensorflow==2.15.0
+tensorflow-estimator==2.15.0
+tensorflow-intel==2.15.0
+tensorflow-io-gcs-filesystem==0.31.0
